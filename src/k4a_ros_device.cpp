@@ -1207,8 +1207,6 @@ void K4AROSDevice::bodyPublisherThread()
   {
     if (k4abt_tracker_queue_size_ > 0)
     {
-   RCLCPP_INFO(this->get_logger(), "good yayyyy");
-
       k4abt::frame body_frame = k4abt_tracker_.pop_result();
       --k4abt_tracker_queue_size_;
 
@@ -1295,8 +1293,6 @@ void K4AROSDevice::bodyPublisherThread()
     else
     {
       std::this_thread::sleep_for(std::chrono::milliseconds{ 20 });
-   RCLCPP_INFO(this->get_logger(), "wait 20 yayyyy");
-
     }
   }
 }
