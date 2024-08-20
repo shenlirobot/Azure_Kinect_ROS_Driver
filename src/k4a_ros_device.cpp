@@ -290,6 +290,9 @@ K4AROSDevice::K4AROSDevice()
     body_marker_publisher_ = this->create_publisher<MarkerArray>("body_tracking_data", 1);
 
     body_index_map_publisher_ = image_transport::create_publisher(this,"body_index_map/image_raw");
+  
+    // https://docs.ros.org/en/foxy/Tutorials/Intermediate/Tf2/Writing-A-Tf2-Static-Broadcaster-Cpp.html
+    tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
   }
 #endif
 }
@@ -779,6 +782,8 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, std::shared_p
   marker_msg->header.frame_id = calibration_data_.tf_prefix_ + calibration_data_.depth_camera_frame_;
   marker_msg->header.stamp = capture_time;
 
+  marker_msg->ns = std::to_string(body.id);
+
   // Set the lifetime to 0.25 to prevent flickering for even 5fps configurations.
   // New markers with the same ID will replace old markers as soon as they arrive.
   marker_msg->lifetime = rclcpp::Duration(0.25);
@@ -803,6 +808,8 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, std::shared_p
   marker_msg->pose.orientation.x = orientation.wxyz.x;
   marker_msg->pose.orientation.y = orientation.wxyz.y;
   marker_msg->pose.orientation.z = orientation.wxyz.z;
+  RCLCPP_INFO(this->get_logger(), "printttttt yayyyy");
+
 
   return K4A_RESULT_SUCCEEDED;
 }
@@ -1043,8 +1050,9 @@ void K4AROSDevice::framePublisherThread()
 
 #if defined(K4A_BODY_TRACKING)
         // Publish body markers when body tracking is enabled and a depth image is available
-        if (params_.body_tracking_enabled && k4abt_tracker_queue_size_ < 3 &&
-            (this->count_subscribers("body_tracking_data") > 0 || this->count_subscribers("body_index_map/image_raw") > 0))
+        // if (params_.body_tracking_enabled && k4abt_tracker_queue_size_ < 3 &&
+        //     (this->count_subscribers("body_tracking_data") > 0 || this->count_subscribers("body_index_map/image_raw") > 0))
+        if (params_.body_tracking_enabled && k4abt_tracker_queue_size_ < 3)
         {
           if (!k4abt_tracker_.enqueue_capture(capture))
           {
@@ -1199,6 +1207,8 @@ void K4AROSDevice::bodyPublisherThread()
   {
     if (k4abt_tracker_queue_size_ > 0)
     {
+   RCLCPP_INFO(this->get_logger(), "good yayyyy");
+
       k4abt::frame body_frame = k4abt_tracker_.pop_result();
       --k4abt_tracker_queue_size_;
 
@@ -1212,7 +1222,7 @@ void K4AROSDevice::bodyPublisherThread()
       {
         auto capture_time = timestampToROS(body_frame.get_device_timestamp());
         
-        if (this->count_subscribers("body_tracking_data") > 0)
+        // if (this->count_subscribers("body_tracking_data") > 0)
         {
           // Joint marker array
           MarkerArray::SharedPtr markerArrayPtr(new MarkerArray);
@@ -1228,6 +1238,34 @@ void K4AROSDevice::bodyPublisherThread()
             }
           }
           body_marker_publisher_->publish(*markerArrayPtr);
+
+          for (const auto& marker : markerArrayPtr->markers)
+          {
+              geometry_msgs::msg::TransformStamped transformStamped;
+
+              transformStamped.header.stamp = marker.header.stamp;
+              transformStamped.header.frame_id = marker.header.frame_id;
+              transformStamped.child_frame_id = marker.ns + "_" + std::to_string(marker.id);
+
+              transformStamped.transform.translation.x = marker.pose.position.x;
+              transformStamped.transform.translation.y = marker.pose.position.y;
+              transformStamped.transform.translation.z = marker.pose.position.z;
+
+              transformStamped.transform.rotation = marker.pose.orientation;
+
+              // RCLCPP_INFO(this->get_logger(), 
+              //   "Publishing transform: child_frame_id=%s, translation=(%f, %f, %f), rotation=(%f, %f, %f, %f)",
+              //   transformStamped.child_frame_id.c_str(),
+              //   transformStamped.transform.translation.x,
+              //   transformStamped.transform.translation.y,
+              //   transformStamped.transform.translation.z,
+              //   transformStamped.transform.rotation.x,
+              //   transformStamped.transform.rotation.y,
+              //   transformStamped.transform.rotation.z,
+              //   transformStamped.transform.rotation.w);
+              
+              tf_broadcaster_->sendTransform(transformStamped);
+          }
         }
 
         if (this->count_subscribers("body_index_map/image_raw") > 0)
@@ -1257,6 +1295,8 @@ void K4AROSDevice::bodyPublisherThread()
     else
     {
       std::this_thread::sleep_for(std::chrono::milliseconds{ 20 });
+   RCLCPP_INFO(this->get_logger(), "wait 20 yayyyy");
+
     }
   }
 }

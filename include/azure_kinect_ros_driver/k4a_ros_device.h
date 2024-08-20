@@ -27,6 +27,7 @@
 #if defined(K4A_BODY_TRACKING)
 #include <visualization_msgs/msg/marker_array.hpp>
 #include <k4abt.hpp>
+#include <tf2_ros/transform_broadcaster.h>
 #endif
 
 // Project headers
@@ -139,6 +140,10 @@ class K4AROSDevice : public rclcpp::Node
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr body_marker_publisher_;
 
   image_transport::Publisher body_index_map_publisher_;
+
+  // https://docs.ros.org/en/foxy/Tutorials/Intermediate/Tf2/Writing-A-Tf2-Static-Broadcaster-Cpp.html
+  // https://answers.ros.org/question/360516/ros2-tf2-broadcaster/
+  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 #endif
 
   // Parameters
