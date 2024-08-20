@@ -808,8 +808,7 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, std::shared_p
   marker_msg->pose.orientation.x = orientation.wxyz.x;
   marker_msg->pose.orientation.y = orientation.wxyz.y;
   marker_msg->pose.orientation.z = orientation.wxyz.z;
-  RCLCPP_INFO(this->get_logger(), "printttttt yayyyy");
-
+  // RCLCPP_INFO(this->get_logger(), "printttttt yayyyy");
 
   return K4A_RESULT_SUCCEEDED;
 }
