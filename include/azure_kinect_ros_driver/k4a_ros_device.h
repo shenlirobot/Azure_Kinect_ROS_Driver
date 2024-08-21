@@ -162,6 +162,8 @@ class K4AROSDevice : public rclcpp::Node
   k4abt::tracker k4abt_tracker_;
   std::atomic_int16_t k4abt_tracker_queue_size_;
   std::thread body_publisher_thread_;
+  // https://github.com/microsoft/Azure_Kinect_ROS_Driver/blob/melodic/include/azure_kinect_ros_driver/k4a_ros_device.h#L181
+  std::vector<std::string> joint_names_{"Pelvis", "Spine_Naval", "Spine_Chest", "Neck", "Clavicle_left", "Shoulder_left", "Elbow_left", "Wrist_left", "Hand_left", "Handtip_left", "thumb_left", "Clavicle_right", "Shoulder_right", "Elbow_right", "Wrist_right", "Hand_right", "Handtip_right", "Thumb_right", "Hip_left", "Knee_left", "Ankle_left", "Foot_left", "Hip_right", "Knee_right", "Ankle_right", "Foot_right", "Head", "Nose", "Eye_Left", "Ear_Left", "Eye_Right", "Ear_Right"};
 #endif
 
   std::chrono::nanoseconds device_to_realtime_offset_{0};

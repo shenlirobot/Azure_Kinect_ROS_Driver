@@ -782,7 +782,7 @@ k4a_result_t K4AROSDevice::getBodyMarker(const k4abt_body_t& body, std::shared_p
   marker_msg->header.frame_id = calibration_data_.tf_prefix_ + calibration_data_.depth_camera_frame_;
   marker_msg->header.stamp = capture_time;
 
-  marker_msg->ns = std::to_string(body.id);
+  marker_msg->ns = joint_names_[jointType] + std::to_string(body.id);
 
   // Set the lifetime to 0.25 to prevent flickering for even 5fps configurations.
   // New markers with the same ID will replace old markers as soon as they arrive.
@@ -1242,7 +1242,11 @@ void K4AROSDevice::bodyPublisherThread()
 
               transformStamped.header.stamp = marker.header.stamp;
               transformStamped.header.frame_id = marker.header.frame_id;
-              transformStamped.child_frame_id = marker.ns + "_" + std::to_string(marker.id);
+              // transformStamped.child_frame_id = std::to_string(marker.id);
+              transformStamped.child_frame_id = marker.ns;
+              // RCLCPP_INFO(this->get_logger(), "Namespace: %s", marker.ns.c_str());
+              // RCLCPP_INFO(this->get_logger(), "ID: %d", marker.id);
+              // RCLCPP_INFO(this->get_logger(), "Child Frame ID: %s", transformStamped.child_frame_id.c_str());
 
               transformStamped.transform.translation.x = marker.pose.position.x;
               transformStamped.transform.translation.y = marker.pose.position.y;
