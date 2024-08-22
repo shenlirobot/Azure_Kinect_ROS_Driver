@@ -1241,6 +1241,7 @@ void K4AROSDevice::bodyPublisherThread()
               geometry_msgs::msg::TransformStamped transformStamped;
 
               transformStamped.header.stamp = marker.header.stamp;
+              transformStamped.header.stamp = capture_time;
               transformStamped.header.frame_id = marker.header.frame_id;
               // transformStamped.child_frame_id = std::to_string(marker.id);
               transformStamped.child_frame_id = marker.ns;
